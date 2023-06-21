@@ -53,10 +53,9 @@ Json::Json(Type type) : m_type(type) {
         default:
             break;
     }
-
 }
-Json::Json(const Json &other) : m_type(other.m_type) {
 
+Json::Json(const Json &other) : m_type(other.m_type) {
     switch (m_type) {
         case json_null:
             break;
@@ -81,6 +80,115 @@ Json::Json(const Json &other) : m_type(other.m_type) {
         default:
             break;
     }
+}
+
+Json::operator bool() {
+    if (m_type != json_bool) {
+        throw new std::logic_error("type error, not bool value");
+    }
+    return m_value.m_bool;
+}
+Json::operator int() {
+    if (m_type != json_int) {
+        throw new std::logic_error("type error, not int value");
+    }
+    return m_value.m_int;
+}
+Json::operator double() {
+    if (m_type != json_double) {
+        throw new std::logic_error("type error, not double value");
+    }
+    return m_value.m_double;
+}
+Json::operator std::string() {
+    if (m_type != json_string) {
+        throw new std::logic_error("type error, not string value");
+    }
+    return *(m_value.m_string);
+}
+
+Json& Json::operator[](int index) {
+    if (m_type != json_array) {
+        if (m_type == json_string) {
+            delete m_value.m_string;
+            m_value.m_string = nullptr;
+        }
+        m_type = json_array;
+        m_value.m_array = new std::vector<Json>();
+    }
+    if (index < 0) {
+        throw new std::logic_error("array[] index < 0");
+    }
+    auto size = (m_value.m_array)->size();
+    if (index >= size) {  // 扩容  提前申请一个数组空间
+        for (int i = size; i <= index; ++i) {
+            (m_value.m_array)->push_back(Json());
+        }
+    }
+    return (m_value.m_array)->at(index);  // 下标从 0 开始 返回引用，调用 api 时给数组赋值
+}
+
+void Json::append(const Json &other) {
+    if (m_type != json_array) {
+        if (m_type == json_string) {
+            delete m_value.m_string;
+            m_value.m_string = nullptr;
+        }
+        m_type = json_array;
+        m_value.m_array = new std::vector<Json>();
+    }
+    (m_value.m_array)->push_back(other); 
 
 }
 
+std::string Json::str() const {
+    std::stringstream ss;
+    switch (m_type) {
+        case json_null:
+            ss << "null";
+            break;
+        case json_bool:
+            if (m_value.m_bool) {
+                ss << "true";
+            } else {
+                ss << "false";
+            }
+            break;
+        case json_int:
+            ss << m_value.m_int;
+            break;
+        case json_double:
+            ss << m_value.m_double;
+            break;
+        case json_string:
+            ss << '\"' << *(m_value.m_string) << '\"';
+            break;
+        case json_array:
+            {
+                ss << '[';
+                for (auto it  = (m_value.m_array)->begin(); it != (m_value.m_array)->end(); ++it) {
+                    if (it != (m_value.m_array)->begin()) {
+                        ss << ',';
+                    }
+                    ss << it->Json::str();
+                }
+                ss << ']';
+            } 
+            break;
+        case json_object:
+            {
+                ss << '{';
+                for (auto it  = (m_value.m_object)->begin(); it != (m_value.m_object)->end(); ++it) {
+                    if (it != (m_value.m_object)->begin()) {
+                        ss << ',';
+                    }
+                    ss << '\"' << it->first << '\"' << ':' << it->second.str();  // TODO 不懂
+                }
+                ss << '}';
+            } 
+            break;
+        default:
+            break;
+    }
+    return ss.str();    
+}

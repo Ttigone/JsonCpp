@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 #include <map>
-
-
+#include <stdexcept>
+#include <sstream>
 namespace css {
   namespace json {
 
@@ -29,6 +29,15 @@ public:
     Json(Type type);
     Json(const Json &other);
 
+    operator bool();
+    operator int();
+    operator double();
+    operator std::string();
+
+    Json& operator[](int index); 
+    void append(const Json &other);
+
+    std::string str() const;
 private:
     union Value {
         bool m_bool;
