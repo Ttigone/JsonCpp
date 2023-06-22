@@ -8,6 +8,7 @@
 namespace css {
   namespace json {
 
+
 class Json {
 public:
     enum Type {
@@ -33,11 +34,43 @@ public:
     operator int();
     operator double();
     operator std::string();
+    
+    void operator =(const Json &other);
+    bool operator ==(const Json &other);
+    bool operator !=(const Json &other);
 
-    Json& operator[](int index); 
+    Json& operator [](int index); 
     void append(const Json &other);
 
+    Json& operator [](const char *key); 
+    Json& operator [](const std::string &key); 
+
     std::string str() const;
+    void copy(const Json &other);
+    void clear();
+
+    typedef std::vector<Json>::iterator iterator;
+    iterator begin() {
+      return m_value.m_array->begin();
+    }
+    iterator end() {
+      return m_value.m_array->end();
+    }
+
+    bool is_null() const { return m_type == json_null; }
+    bool is_bool() const { return m_type == json_bool; }
+    bool is_int() const { return m_type == json_int; }
+    bool is_double() const { return m_type == json_double; }
+    bool is_string() const { return m_type == json_array; }
+    bool is_array() const { return m_type == json_array; }
+    bool is_object() const { return m_type == json_bool; }
+
+    bool as_bool() const;
+    int as_int() const;
+    double as_double() const;
+    std::string as_string() const;
+    std::vector<Json> as_array() const;
+
 private:
     union Value {
         bool m_bool;
