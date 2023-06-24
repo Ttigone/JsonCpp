@@ -1,4 +1,5 @@
 #include "json.h"
+#include "parser.h"
 
 using namespace css;
 using namespace json;
@@ -316,9 +317,56 @@ std::string Json::as_string() const {
     return *(m_value.m_string);
 }
 
-std::vector<Json> Json::as_array() const {
+bool Json::has(int index) {
     if (m_type != json_array) {
-        throw new std::logic_error("type error, not array value");
+        return false;
     }
-    return *(m_value.m_array);
+    int size = (m_value.m_array)->size();
+    return (index >= 0 && index < size);
+}
+
+bool Json::has(const char *key) {
+    std::string name(key);
+    return has(name);
+}
+
+bool Json::has(const std::string &key) {
+    if (m_type != json_object) {
+        return false;
+    }
+    return (m_value.m_object)->end() != (m_value.m_object)->find(key);
+}
+
+void Json::remove(int index) {   // index 下标
+    if (m_type != json_array) {
+        return;
+    }
+    if (has(index)) {
+        (m_value.m_array)->at(index).clear();       
+        (m_value.m_array)->erase(begin() + index);
+    } else {
+        return;
+    }
+}
+
+void Json::remove(const char *key) {
+    std::string name(key);
+    remove(name);
+}
+
+void Json::remove(const std::string &key) {
+    if (m_type != json_object) {
+        return;
+    }
+    auto it = (m_value.m_object)->find(key);
+    if (it != (m_value.m_object)->end()) {
+        (it->second).clear();
+        (m_value.m_object)->erase(key);
+    }
+}
+
+void Json::parse(const std::string &str) {
+    Parser p;
+    p.load(str);
+    *this = p.parse();
 }

@@ -69,7 +69,16 @@ public:
     int as_int() const;
     double as_double() const;
     std::string as_string() const;
-    std::vector<Json> as_array() const;
+
+    bool has(int index);
+    bool has(const char *key);
+    bool has(const std::string &key);
+
+    void remove(int index);
+    void remove(const char *key);
+    void remove(const std::string &key);
+
+    void parse(const std::string &str);
 
 private:
     union Value {
